@@ -1,9 +1,9 @@
 # coding: utf-8
 require 'test/unit'
 
-SMALL = %w[noll ett två tre fyra fem sex sju åtta nio tio elva tolv]
+SMALL = %w[noll ett två tre fyra fem sex sju åtta nio tio elva tolv].freeze
 
-def to_string(nr, genus='ett')
+def to_string(nr, genus = 'ett')
   {
     miljard: 1_000_000_000,
     miljon: 1_000_000,
@@ -15,7 +15,7 @@ def to_string(nr, genus='ett')
     end
   end
 
-  if (100...1000).include?(nr) && nr % 100 == 0
+  if (100...1000).cover?(nr) && nr % 100 == 0
     return to_string(nr / 100) + 'hundra'
   end
 
@@ -52,7 +52,7 @@ TABLE = {
   tusen: 1000,
   miljon: 1_000_000,
   miljard: 1_000_000_000
-}
+}.freeze
 
 def to_number(word)
   result = []
@@ -72,7 +72,7 @@ def to_number(word)
       [sum, 1].max * 100
     when /(tusen|miljon|miljard)/
       # Handle "tusen miljoner", "tusen miljarder", etc.
-      if (1000...1_000_000).include?(result.last) && chunk.start_with?('m')
+      if (1000...1_000_000).cover?(result.last) && chunk.start_with?('m')
         sum += result.last
         result = result[0..-2]
       end
@@ -148,8 +148,8 @@ class NumbersTest < Test::Unit::TestCase
     check 'enmiljon', 1_000_000
     check 'tvåmiljonertrettiotusensjuhundra', 2_030_700
     check 'enmiljard', 1_000_000_000
-    check ('etthundratjugotre miljarder fyrahundrafemtiosex miljoner ' +
-           'sjuhundraåttionio tusen etthundratjugotre').gsub(' ', ''),
+    check 'etthundratjugotre miljarder fyrahundrafemtiosex miljoner ' \
+           'sjuhundraåttionio tusen etthundratjugotre'.delete(' '),
           123_456_789_123
   end
 
