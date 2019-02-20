@@ -15,7 +15,9 @@ def to_string(nr, genus='ett')
     end
   end
 
-  return to_string(nr / 100) + 'hundra' if nr >= 100 && nr % 100 == 0 && nr < 1000
+  if (100...1000).include?(nr) && nr % 100 == 0
+    return to_string(nr / 100) + 'hundra'
+  end
 
   case nr
   when 1 then genus
@@ -53,31 +55,36 @@ TABLE = {
 }
 
 def to_number(word)
-  output = []
+  result = []
   last_sum = chunkify(word.gsub(/ +/, '')).reduce(0) do |sum, chunk|
     case chunk
-    when *SMALL then sum + SMALL.index(chunk)
-    when 'en', 'ett' then sum + 1
-    when /(tre|fem|sex|sju)t?ton/ then sum + 10 + to_number($1)
-    when /(fjor|ar|nit)ton|tjugo|(fyr|åt|nit)tio/ then sum + TABLE[chunk.to_sym]
-    when /(tre|fem|sex|sju)t?tio/ then sum + to_number($1) * 10
-    when 'hundra' then [sum, 1].max * 100
+    when *SMALL
+      sum + SMALL.index(chunk)
+    when 'en', 'ett'
+      sum + 1
+    when /(tre|fem|sex|sju)t?ton/
+      sum + 10 + to_number($1)
+    when /(fjor|ar|nit)ton|tjugo|(fyr|åt|nit)tio/
+      sum + TABLE[chunk.to_sym]
+    when /(tre|fem|sex|sju)t?tio/
+      sum + to_number($1) * 10
+    when 'hundra'
+      [sum, 1].max * 100
     when /(tusen|miljon|miljard)/
       # Handle "tusen miljoner", "tusen miljarder", etc.
-      if output.any? && output.last >= 1000 && output.last < 1_000_000 &&
-         chunk.start_with?('m')
-        sum += output.last
-        output = output[0..-2]
+      if (1000...1_000_000).include?(result.last) && chunk.start_with?('m')
+        sum += result.last
+        result = result[0..-2]
       end
       # Save what we have so far...
-      output << [sum, 1].max * TABLE[$1.to_sym]
+      result << [sum, 1].max * TABLE[$1.to_sym]
       # ...and start on the next part.
       0
     else raise RuntimeError, chunk
     end
   end
-  output << last_sum
-  output.reduce(:+)
+  result << last_sum
+  result.reduce(:+)
 end
 
 PARTS = %w[(?:tret fjor fem sex sjut ar nit)ton
